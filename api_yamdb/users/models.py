@@ -22,7 +22,8 @@ class User(AbstractUser):
         default='user'
     )
 
-    confirmation_code = models.CharField(max_length=16, blank=True)
+    confirmation_code = models.CharField(_('confirmation code'),
+                                         max_length=16, blank=True)
 
     class Meta:
         constraints = [

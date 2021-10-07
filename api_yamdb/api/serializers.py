@@ -34,3 +34,17 @@ class SignupSerializer(serializers.ModelSerializer):
         user.confirmation_code = confirmation_code_generator()
         user.save()
         return user
+
+
+class UserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ('username', 'email', 'first_name',
+                  'last_name', 'bio', 'role')
+
+    def validate(self, data):
+        user = self.context['request'].user
+        method = self.context['request'].method
+        if method == 'PATCH' and user.role == 'user' and 'role' in data:
+            data.pop('role')
+        return data
