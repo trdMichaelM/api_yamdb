@@ -34,3 +34,8 @@ class AdminWriteOnlyPermissions(permissions.BasePermission):
 #                 request.user.role in ('admin', 'moderator', 'user',)
 #         )
 #         return user_has_right or request.user.is_superuser
+
+
+# class SuperUserPermissions(permissions.BasePermission):
+#     def has_permission(self, request, view):
+#         return bool(request.user and request.user.is_superuser)

@@ -29,6 +29,21 @@ class SignupSerializer(serializers.ModelSerializer):
             )
         return data
 
+    def is_valid(self):
+        """
+        Логики переопределения метода is_valid заключается в том что,
+        по заданию юзера можно создать через админку, и если мы потом пытаемся
+        запросить код подтверждения, мы получает ошибку от модели, что поля
+        с указанными username и email уже существуют, переопределив метод,
+        проверяем на наличие юзера и если он существует, возвращаем True.
+        А в методе create используем get_or_create().
+        """
+        if User.objects.filter(**self.initial_data).exists():
+            self._validated_data = self.initial_data
+            self._errors = {}
+            return True
+        return super().is_valid()
+
     def create(self, validated_data):
         user, status = User.objects.get_or_create(**validated_data)
         user.confirmation_code = confirmation_code_generator()

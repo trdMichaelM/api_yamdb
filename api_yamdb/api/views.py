@@ -61,15 +61,9 @@ class UserViewSet(viewsets.ModelViewSet):
     search_fields = ('username',)
 
     def get_permissions(self):
-        if self.action == 'list':
+        if self.action in ('list', 'retrieve',):
             return (AdminReadOnlyPermissions(),)
-        elif self.action == 'create':
-            return (AdminWriteOnlyPermissions(),)
-        elif self.action == 'retrieve':
-            return (AdminReadOnlyPermissions(),)
-        elif self.action == 'partial_update':
-            return (AdminWriteOnlyPermissions(),)
-        elif self.action == 'destroy':
+        elif self.action in ('create', 'partial_update', 'destroy',):
             return (AdminWriteOnlyPermissions(),)
         elif self.action == 'update':
             raise exceptions.PermissionDenied('Do not allow PUT request')
