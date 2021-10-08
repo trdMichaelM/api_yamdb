@@ -1,7 +1,5 @@
-from django.shortcuts import render
 from rest_framework import viewsets
 from rest_framework.generics import get_object_or_404
-from rest_framework.permissions import AllowAny
 from rest_framework.exceptions import PermissionDenied
 
 from reviews.models import Review
@@ -17,7 +15,6 @@ class ReviewViewSet(viewsets.ModelViewSet):
     
     def get_permissions(self):
         if self.action == 'update':
-            #(AllowAny(),)
             raise PermissionDenied('Do not allow PUT request')
         return super().get_permissions()
 
