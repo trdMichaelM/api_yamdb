@@ -1,9 +1,11 @@
 from rest_framework import viewsets
 from rest_framework.generics import get_object_or_404
 from rest_framework.exceptions import PermissionDenied
+from rest_framework.permissions import (AllowAny)
+                                      
 
-from reviews.models import Review
-from .serializers import CommentSerializer, ReviewSerializer
+from reviews.models import Review, Title
+from .serializers import CommentSerializer, ReviewSerializer, TitleSerializer
 from .pagination import ReviewsPagination, CommentsPagination
 from .permissions import AdminOrReadOnly
 
@@ -40,3 +42,10 @@ class CommentViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         review = get_object_or_404(Review, id=self.kwargs['review_id'])
         serializer.save(author=self.request.user, review=review)
+    
+class TitleViewSet(viewsets.ModelViewSet):
+    queryset = Title.objects.all()
+    serializer_class = TitleSerializer
+    permission_classes = (AllowAny ,)
+    
+  

@@ -7,7 +7,9 @@ from django.contrib.auth import get_user_model
 User = get_user_model()
 
 
-
+class Title(models.Model):
+    name = models.CharField(max_length=64)
+    
     
 class Review(models.Model):
     text = models.TextField()
@@ -18,18 +20,11 @@ class Review(models.Model):
         User, on_delete=models.CASCADE, related_name='reviews'
     )
     title_id = models.ForeignKey(
-        Title, on_delete=models.CASCADE, related_name='Rating'
+        Title, on_delete=models.CASCADE, related_name='rating'
     )
-    score = models.IntegerField()  
-
-    class Meta:
-        constraints = [
-            models.UniqueConstraint(
-                fields=['author', 'title_id'], name='unique_follow_users'
-            )
-        ]
-   
-    
+    score = models.IntegerField() 
+     
+     
 class Comment(models.Model):
     author = models.ForeignKey(
         User, on_delete=models.CASCADE, related_name='comments'

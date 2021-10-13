@@ -19,12 +19,21 @@ from django.views.generic import TemplateView
 
 from rest_framework import routers
 
-from api.views import ReviewViewSet, CommentViewSet
+from api.views import ReviewViewSet, CommentViewSet, TitleViewSet
 
 router = routers.DefaultRouter()
 
+
+router.register(r'titles', TitleViewSet, basename='titles')
+
+#router.register(r'reviews', ReviewViewSet, basename='reviews')
+
+#router.register(r'reviews/(?P<review_id>\d+)/comments', CommentViewSet,
+                #basename='comments')
+
+
                 
-router.register(r'titles/(?P<title_id>\d+)/reviews/', ReviewViewSet, basename='reviews')
+router.register(r'titles/(?P<title_id>\d+)/reviews', ReviewViewSet, basename='reviews')
 
 router.register(r'titles/(?P<title_id>\d+)/reviews/(?P<review_id>\d+)/comments', CommentViewSet,
                 basename='comments')
