@@ -2,15 +2,31 @@ from django.core.mail import send_mail
 from django.shortcuts import get_object_or_404
 from django.contrib.auth import get_user_model
 
-from rest_framework import status, viewsets, filters, exceptions
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework import status, viewsets, filters, exceptions, filters
 from rest_framework.decorators import api_view, permission_classes, action
-from rest_framework.permissions import AllowAny
+from rest_framework.pagination import (
+    LimitOffsetPagination,
+    PageNumberPagination
+)
+from rest_framework.permissions import AllowAny, IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
 
-from .serializers import SignupSerializer, UserSerializer
+from reviews.models import Category, Genre, Title
+from .serializers import (
+    SignupSerializer,
+    UserSerializer,
+    CategorySerializer,
+    GenreSerializer,
+    TitleSerializer,
+)
 from .pagination import UserPagination
-from .permissions import AdminReadOnlyPermissions, AdminWriteOnlyPermissions
+from .permissions import (
+    AdminReadOnlyPermissions,
+    AdminWriteOnlyPermissions,
+    AdminReadOnlyPermissionsWithOutSuperuser,
+)
 
 User = get_user_model()
 
@@ -83,3 +99,50 @@ class UserViewSet(viewsets.ModelViewSet):
 
         serializer = self.get_serializer(user)
         return Response(serializer.data)
+
+
+class CategoryViewSet(viewsets.ModelViewSet):
+    queryset = Category.objects.all()
+    serializer_class = CategorySerializer
+    permission_classes = (AdminReadOnlyPermissionsWithOutSuperuser,)
+    filter_backends = (DjangoFilterBackend, filters.SearchFilter)
+    filterset_fields = ('name',)
+    search_fields = ('name',)
+
+    @action(
+        detail=False, methods=['delete'],
+        url_path=r'(?P<slug>\w+)',
+        lookup_field='slug', url_name='category_slug'
+    )
+    def get_category(self, request, slug):
+        category = self.get_object()
+        serializer = CategorySerializer(category)
+        category.delete()
+        return Response(serializer.data, status=status.HTTP_204_NO_CONTENT)
+
+
+class GenreViewSet(viewsets.ModelViewSet):
+    queryset = Genre.objects.all()
+    serializer_class = GenreSerializer
+    permission_classes = (AdminReadOnlyPermissionsWithOutSuperuser,)
+    filter_backends = (DjangoFilterBackend, filters.SearchFilter)
+    filterset_fields = ('name',)
+    search_fields = ('name',)
+    lookup_field = 'slug'
+
+    @action(
+        detail=False, methods=['delete'],
+        url_path=r'(?P<slug>\w+)',
+        lookup_field='slug', url_name='genre_slug'
+    )
+    def get_category(self, request, slug):
+        genre = self.get_object()
+        serializer = GenreSerializer(genre)
+        genre.delete()
+        return Response(serializer.data, status=status.HTTP_204_NO_CONTENT)
+
+
+class TitleViewSet(viewsets.ModelViewSet):
+    queryset = Title.objects.all()
+    serializer_class = TitleSerializer
+    permission_classes = (AdminReadOnlyPermissionsWithOutSuperuser,)

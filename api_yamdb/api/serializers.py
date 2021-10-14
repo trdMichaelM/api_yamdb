@@ -4,6 +4,8 @@ from django.contrib.auth import get_user_model
 
 from rest_framework import serializers
 
+from reviews.models import Category, Genre, Title
+
 User = get_user_model()
 
 
@@ -63,3 +65,24 @@ class UserSerializer(serializers.ModelSerializer):
         if method == 'PATCH' and user.role == 'user' and 'role' in data:
             data.pop('role')
         return data
+
+
+class CategorySerializer(serializers.ModelSerializer):
+    class Meta:
+        fields = ('name', 'slug')
+        model = Category
+
+
+class GenreSerializer(serializers.ModelSerializer):
+    class Meta:
+        fields = ('name', 'slug')
+        model = Genre
+
+
+class TitleSerializer(serializers.ModelSerializer):
+    genre = GenreSerializer(required=True, many=True)
+    category = CategorySerializer(required=True, many=True)
+
+    class Meta:
+        fields = ('id', 'name', 'year', 'description', 'genre', 'category')
+        model = Title
