@@ -23,7 +23,12 @@ class Review(models.Model):
         Title, on_delete=models.CASCADE, related_name='rating'
     )
     score = models.IntegerField() 
-     
+    class Meta: 
+        constraints = [ 
+            models.UniqueConstraint( 
+                fields=['text', 'score'], 
+                name='unique_text_score')
+        ]
      
 class Comment(models.Model):
     author = models.ForeignKey(
