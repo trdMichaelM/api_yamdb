@@ -57,7 +57,7 @@ class SignupSerializer(serializers.ModelSerializer):
 
 
 class UserSerializer(serializers.ModelSerializer):
-    
+
     class Meta:
         model = User
         fields = ('username', 'email', 'first_name',
@@ -117,11 +117,3 @@ class CommentSerializer(serializers.ModelSerializer):
     class Meta:
         fields = ('id', 'author', 'pub_date', 'text')
         model = Comment
-
-
-  
-            
-   
-
-
- 
