@@ -1,10 +1,11 @@
-from api.views import signup, token, UserViewSet
-from api.views import ReviewViewSet, CommentViewSet, TitleViewSet
 from django.contrib import admin
 from django.urls import include, path
 from django.views.generic import TemplateView
 
 from rest_framework import routers
+
+from api.views import UserViewSet
+from api.views import ReviewViewSet, CommentViewSet, TitleViewSet
 
 router = routers.DefaultRouter()
 router.register(r'users', UserViewSet)

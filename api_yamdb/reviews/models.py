@@ -2,8 +2,6 @@ from django.db import models
 from django.contrib.auth import get_user_model
 
 
-
-
 User = get_user_model()
 
 
@@ -19,17 +17,19 @@ class Review(models.Model):
     author = models.ForeignKey(
         User, on_delete=models.CASCADE, related_name='reviews'
     )
-    title_id = models.ForeignKey(
-        Title, on_delete=models.CASCADE, related_name='rating'
+    title = models.ForeignKey(
+        Title, on_delete=models.CASCADE, related_name='reviews'
     )
     score = models.IntegerField() 
+
     class Meta: 
         constraints = [ 
             models.UniqueConstraint( 
-                fields=['text', 'score'], 
-                name='unique_text_score')
+                fields=['author', 'title'], 
+                name='unique_author_title')
         ]
-     
+
+        
 class Comment(models.Model):
     author = models.ForeignKey(
         User, on_delete=models.CASCADE, related_name='comments'

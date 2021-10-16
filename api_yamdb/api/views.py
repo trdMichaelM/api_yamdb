@@ -97,15 +97,14 @@ class ReviewViewSet(viewsets.ModelViewSet):
         if self.action == 'update':
             raise PermissionDenied('Do not allow PUT request')
         return super().get_permissions()
-    
+
     def get_queryset(self):
         title = get_object_or_404(Title, id=self.kwargs['title_id'])
-        queryset = title.rating.all()
-        return queryset
+        return title.reviews.all()
 
     def perform_create(self, serializer):
-        title_id = get_object_or_404(Title, id=self.kwargs['title_id'])
-        serializer.save(author=self.request.user, title_id=title_id)
+        title = get_object_or_404(Title, id=self.kwargs['title_id'])
+        serializer.save(author=self.request.user, title=title)
     
 
 class CommentViewSet(viewsets.ModelViewSet):
@@ -119,12 +118,13 @@ class CommentViewSet(viewsets.ModelViewSet):
         return super().get_permissions()
 
     def get_queryset(self):
-        review = get_object_or_404(Review, id=self.kwargs['review_id'])
-        queryset = review.comments.all()
-        return queryset
+        title = get_object_or_404(Title, id=self.kwargs['title_id'])      
+        review = get_object_or_404(title.reviews, id=self.kwargs['review_id'])
+        return review.comments.all()
 
     def perform_create(self, serializer):
-        review = get_object_or_404(Review, id=self.kwargs['review_id'])
+        title = get_object_or_404(Title, id=self.kwargs['title_id'])
+        review = get_object_or_404(title.reviews, id=self.kwargs['review_id'])
         serializer.save(author=self.request.user, review=review)
     
     
