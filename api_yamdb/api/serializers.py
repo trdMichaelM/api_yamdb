@@ -70,18 +70,6 @@ class UserSerializer(serializers.ModelSerializer):
             data.pop('role')
         return data
 
-class TitleSerializer(serializers.ModelSerializer):
-    
-    rating = serializers.SerializerMethodField(source='reviews',read_only=True)
-    
-    class Meta:
-        fields = ('id', 'name', 'rating')
-        model = Title
-
-    def get_rating(self,obj):
-        rate = obj.reviews.aggregate(average_score=Avg('score'))
-        return rate.get('average_score')
-        
 
 class ReviewSerializer(serializers.ModelSerializer):
     author = SlugRelatedField(slug_field='username', read_only=True,
@@ -109,6 +97,7 @@ class ReviewSerializer(serializers.ModelSerializer):
                 ).exists()):
             raise serializers.ValidationError('один автор - одно произведение-одно ревью!')
         return data
+
 
 class CommentSerializer(serializers.ModelSerializer):
     author = SlugRelatedField(slug_field='username', read_only=True)

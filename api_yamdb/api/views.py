@@ -1,7 +1,6 @@
 from rest_framework import viewsets, status, viewsets, filters, exceptions
 from rest_framework.generics import get_object_or_404
 from rest_framework.exceptions import PermissionDenied
-from rest_framework.permissions import AllowAny
 from rest_framework.decorators import api_view, permission_classes, action
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken                                  
@@ -9,7 +8,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from reviews.models import Review, Title
 from .serializers import CommentSerializer, ReviewSerializer, TitleSerializer, SignupSerializer, UserSerializer
 from .pagination import ReviewsPagination, CommentsPagination, UserPagination
-from .permissions import AdminOrReadOnly, AdminReadOnlyPermissions, AdminWriteOnlyPermissions
+from .permissions import AdminOrReadOnly, AdminReadOnlyPermissions, AdminWriteOnlyPermissions, AllowAny
 
 from django.core.mail import send_mail
 from django.shortcuts import get_object_or_404
@@ -87,6 +86,7 @@ class UserViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(user)
         return Response(serializer.data)
 
+
 class ReviewViewSet(viewsets.ModelViewSet):
     queryset = Review.objects.all()
     serializer_class = ReviewSerializer
@@ -131,6 +131,4 @@ class CommentViewSet(viewsets.ModelViewSet):
 class TitleViewSet(viewsets.ModelViewSet):
     queryset = Title.objects.all()
     serializer_class = TitleSerializer
-    permission_classes = (AllowAny ,)
-    
-  
+    permission_classes = (AllowAny ,) 
