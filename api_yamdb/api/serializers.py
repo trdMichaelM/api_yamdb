@@ -1,8 +1,13 @@
 import random
 
 from django.contrib.auth import get_user_model
+from django.db.models import Avg
 
 from rest_framework import serializers
+from rest_framework.generics import get_object_or_404
+from rest_framework.relations import SlugRelatedField
+
+from reviews.models import Comment, Review, Title
 
 User = get_user_model()
 
@@ -52,6 +57,7 @@ class SignupSerializer(serializers.ModelSerializer):
 
 
 class UserSerializer(serializers.ModelSerializer):
+
     class Meta:
         model = User
         fields = ('username', 'email', 'first_name',
@@ -63,3 +69,51 @@ class UserSerializer(serializers.ModelSerializer):
         if method == 'PATCH' and user.role == 'user' and 'role' in data:
             data.pop('role')
         return data
+
+#class TitleSerializer(serializers.ModelSerializer):
+    
+#    rating = serializers.SerializerMethodField(source='reviews',read_only=True)
+    
+#    class Meta:
+#        fields = ('id', 'name', 'rating')
+#        model = Title
+
+#    def get_rating(self,obj):
+#        rate = obj.reviews.aggregate(average_score=Avg('score'))
+#        return rate.get('average_score')
+        
+
+class ReviewSerializer(serializers.ModelSerializer):
+    author = SlugRelatedField(slug_field='username', read_only=True,
+                              default=serializers.CurrentUserDefault())
+    
+    title = serializers.StringRelatedField(
+        read_only=True,
+    )
+    
+    class Meta:
+        fields = ('id', 'title', 'author',  'text', 'score','pub_date')
+        model = Review
+        
+    
+    def validate(self, data):
+        title = get_object_or_404(
+            Title,
+            id=self.context['request'].parser_context['kwargs']['title_id']
+        )
+        author = self.context['request'].user
+        if (self.context['request'].method == "POST"
+                and Review.objects.filter(
+                    title=title,
+                    author=author
+                ).exists()):
+            raise serializers.ValidationError('один автор - одно произведение-одно ревью!')
+        return data
+
+
+class CommentSerializer(serializers.ModelSerializer):
+    author = SlugRelatedField(slug_field='username', read_only=True)
+
+    class Meta:
+        fields = ('id', 'author', 'pub_date', 'text')
+        model = Comment

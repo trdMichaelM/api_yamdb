@@ -1,16 +1,18 @@
+from rest_framework import viewsets, status, viewsets, filters, exceptions
+from rest_framework.generics import get_object_or_404
+from rest_framework.exceptions import PermissionDenied
+from rest_framework.decorators import api_view, permission_classes, action
+from rest_framework.response import Response
+from rest_framework_simplejwt.tokens import RefreshToken                                  
+
+from reviews.models import Review, Title
+from .serializers import CommentSerializer, ReviewSerializer, TitleSerializer, SignupSerializer, UserSerializer
+from .pagination import ReviewsPagination, CommentsPagination, UserPagination
+from .permissions import AdminOrReadOnly, AdminReadOnlyPermissions, AdminWriteOnlyPermissions, AllowAny
+
 from django.core.mail import send_mail
 from django.shortcuts import get_object_or_404
 from django.contrib.auth import get_user_model
-
-from rest_framework import status, viewsets, filters, exceptions
-from rest_framework.decorators import api_view, permission_classes, action
-from rest_framework.permissions import AllowAny
-from rest_framework.response import Response
-from rest_framework_simplejwt.tokens import RefreshToken
-
-from .serializers import SignupSerializer, UserSerializer
-from .pagination import UserPagination
-from .permissions import AdminReadOnlyPermissions, AdminWriteOnlyPermissions
 
 User = get_user_model()
 
@@ -83,3 +85,45 @@ class UserViewSet(viewsets.ModelViewSet):
 
         serializer = self.get_serializer(user)
         return Response(serializer.data)
+
+
+class ReviewViewSet(viewsets.ModelViewSet):
+    queryset = Review.objects.all()
+    serializer_class = ReviewSerializer
+    permission_classes = (AdminOrReadOnly,)
+    pagination_class = ReviewsPagination
+    
+    def get_permissions(self):
+        if self.action == 'update':
+            raise PermissionDenied('Do not allow PUT request')
+        return super().get_permissions()
+
+    def get_queryset(self):
+        title = get_object_or_404(Title, id=self.kwargs['title_id'])
+        return title.reviews.all()
+
+    def perform_create(self, serializer):
+        title = get_object_or_404(Title, id=self.kwargs['title_id'])
+        serializer.save(author=self.request.user, title=title)
+    
+
+class CommentViewSet(viewsets.ModelViewSet):
+    serializer_class = CommentSerializer
+    permission_classes = (AdminOrReadOnly,)
+    pagination_class = CommentsPagination
+
+    def get_permissions(self):
+        if self.action == 'update':
+            raise PermissionDenied('Do not allow PUT request')
+        return super().get_permissions()
+
+    def get_queryset(self):
+        title = get_object_or_404(Title, id=self.kwargs['title_id'])      
+        review = get_object_or_404(title.reviews, id=self.kwargs['review_id'])
+        return review.comments.all()
+
+    def perform_create(self, serializer):
+        title = get_object_or_404(Title, id=self.kwargs['title_id'])
+        review = get_object_or_404(title.reviews, id=self.kwargs['review_id'])
+        serializer.save(author=self.request.user, review=review)
+
