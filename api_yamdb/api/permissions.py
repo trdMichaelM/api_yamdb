@@ -10,6 +10,15 @@ class AdminReadOnlyPermissions(permissions.BasePermission):
         return access or request.user.is_superuser
 
 
+class AdminReadOnlyPermissionsWithOutSuperuser(permissions.BasePermission):
+    def has_permission(self, request, view):
+        safe_method = request.method in permissions.SAFE_METHODS
+        user_is_admin = (request.user and request.user.is_authenticated
+                         and request.user.role == 'admin')
+        access = safe_method or user_is_admin
+        return access
+
+
 class AdminWriteOnlyPermissions(permissions.BasePermission):
     def has_permission(self, request, view):
         user_is_admin = (request.user and request.user.is_authenticated

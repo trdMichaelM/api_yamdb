@@ -9,6 +9,8 @@ from rest_framework.relations import SlugRelatedField
 
 from reviews.models import Comment, Review, Title
 
+from reviews.models import Category, Genre, Title
+
 User = get_user_model()
 
 
@@ -70,17 +72,68 @@ class UserSerializer(serializers.ModelSerializer):
             data.pop('role')
         return data
 
-#class TitleSerializer(serializers.ModelSerializer):
-    
-#    rating = serializers.SerializerMethodField(source='reviews',read_only=True)
-    
-#    class Meta:
-#        fields = ('id', 'name', 'rating')
-#        model = Title
 
-#    def get_rating(self,obj):
-#        rate = obj.reviews.aggregate(average_score=Avg('score'))
-#        return rate.get('average_score')
+class CategorySerializer(serializers.ModelSerializer):
+    class Meta:
+        fields = ('name', 'slug')
+        model = Category
+
+
+class GenreSerializer(serializers.ModelSerializer):
+    class Meta:
+        fields = ('name', 'slug')
+        model = Genre
+
+
+class TitleReadSerializer(serializers.ModelSerializer):
+    rating = serializers.SerializerMethodField(source='reviews', read_only=True)
+    genre = GenreSerializer(many=True, read_only=True)
+    category = CategorySerializer(read_only=True)
+
+    class Meta:
+        fields = (
+          'id',
+          'name',
+          'year',
+          'description',
+          'genre',
+          'category',
+          'rating'
+        )
+        model = Ttle
+
+    def get_rating(self,obj):
+        rate = obj.reviews.aggregate(average_score=Avg('score'))
+        return rate.get('average_score')
+
+
+class TitleWriteSerializer(serializers.ModelSerializer):
+    rating = serializers.SerializerMethodField(source='reviews', read_only=True)
+    genre = serializers.SlugRelatedField(
+        many=True,
+        slug_field='slug',
+        queryset=Genre.objects.all()
+    )
+    category = serializers.SlugRelatedField(
+        slug_field='slug',
+        queryset=Category.objects.all()
+    )
+
+    class Meta:
+        fields = (
+          'id',
+          'name',
+          'year',
+          'description',
+          'genre',
+          'category',
+          'rating'
+        )
+        model = Title
+
+    def get_rating(self,obj):
+        rate = obj.reviews.aggregate(average_score=Avg('score'))
+        return rate.get('average_score')
         
 
 class ReviewSerializer(serializers.ModelSerializer):
