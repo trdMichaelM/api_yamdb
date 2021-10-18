@@ -29,7 +29,6 @@ router.register(
 
 urlpatterns = [
     path('', include(router.urls)),
-    path('v1/', include('djoser.urls.jwt')),
     path('v1/', include(router.urls)),
     path('v1/auth/signup/', signup, name='signup'),
     path('v1/auth/token/', token, name='token')
