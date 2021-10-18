@@ -23,4 +23,7 @@ class Title(models.Model):
         related_name='genre'
     )
     category = models.ForeignKey(
-        Category, on_delete=models.CASCADE, related_name='category', null=True)
+        Category, on_delete=models.SET_NULL,
+        related_name='category',
+        null=True
+    )
