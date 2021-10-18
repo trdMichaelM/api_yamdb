@@ -7,9 +7,7 @@ from rest_framework import serializers
 from rest_framework.generics import get_object_or_404
 from rest_framework.relations import SlugRelatedField
 
-from reviews.models import Comment, Review, Title
-
-from reviews.models import Category, Genre, Title
+from reviews.models import Comment, Review, Title, Category, Genre
 
 User = get_user_model()
 
@@ -59,7 +57,6 @@ class SignupSerializer(serializers.ModelSerializer):
 
 
 class UserSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = User
         fields = ('username', 'email', 'first_name',
@@ -161,10 +158,8 @@ class ReviewSerializer(serializers.ModelSerializer):
         )
         author = self.context['request'].user
         if (self.context['request'].method == "POST"
-                and Review.objects.filter(
-                    title=title,
-                    author=author
-                ).exists()):
+                and Review.objects.filter(title=title,
+                                          author=author).exists()):
             raise serializers.ValidationError('один автор - одно'
                                               'произведение-одно ревью!')
         return data

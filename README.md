@@ -36,9 +36,10 @@ python3 -m pip install --upgrade pip
 pip install -r requirements.txt
 ```
 
-Дополнительно установить модули Simple JWT:
+Дополнительно установить модули Simple JWT и django_filters:
 
 ```
+pip install django-filter
 pip install djangorestframework_simplejwt 
 ```
 

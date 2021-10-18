@@ -3,15 +3,16 @@ from django.shortcuts import get_object_or_404
 from django.contrib.auth import get_user_model
 from django_filters.rest_framework import DjangoFilterBackend
 
-from rest_framework import viewsets, status, viewsets, filters, exceptions
+from rest_framework import status, viewsets, filters
 from rest_framework.permissions import AllowAny
 from rest_framework.generics import get_object_or_404
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.decorators import api_view, permission_classes, action
 from rest_framework.response import Response
-from rest_framework_simplejwt.tokens import RefreshToken                               
+from rest_framework_simplejwt.tokens import RefreshToken
 
-from reviews.models import Category, Genre, Review, Title
+from reviews.models import Category, Genre, Title
+
 from .serializers import (
     SignupSerializer,
     UserSerializer,
@@ -30,7 +31,6 @@ from .permissions import (
     AdminOrReadOnly,
 )
 from .filters import TitleFilter
-
 
 User = get_user_model()
 
@@ -86,7 +86,7 @@ class UserViewSet(viewsets.ModelViewSet):
         elif self.action in ('create', 'partial_update', 'destroy',):
             return (AdminWriteOnlyPermissions(),)
         elif self.action == 'update':
-            raise exceptions.PermissionDenied('Do not allow PUT request')
+            raise PermissionDenied('Do not allow PUT request')
         return super().get_permissions()
 
     @action(methods=['GET', 'PATCH'], detail=False)
@@ -106,7 +106,7 @@ class UserViewSet(viewsets.ModelViewSet):
 
 
 class CategoryViewSet(viewsets.ModelViewSet):
-    queryset = Category.objects.all()
+    queryset = Category.objects.all().order_by('pk')
     serializer_class = CategorySerializer
     permission_classes = (AdminReadOnlyPermissionsWithOutSuperuser,)
     filter_backends = (DjangoFilterBackend, filters.SearchFilter)
@@ -126,7 +126,7 @@ class CategoryViewSet(viewsets.ModelViewSet):
 
 
 class GenreViewSet(viewsets.ModelViewSet):
-    queryset = Genre.objects.all()
+    queryset = Genre.objects.all().order_by('pk')
     serializer_class = GenreSerializer
     permission_classes = (AdminReadOnlyPermissionsWithOutSuperuser,)
     filter_backends = (DjangoFilterBackend, filters.SearchFilter)
@@ -147,7 +147,7 @@ class GenreViewSet(viewsets.ModelViewSet):
 
 
 class TitleViewSet(viewsets.ModelViewSet):
-    queryset = Title.objects.all()
+    queryset = Title.objects.all().order_by('pk')
     permission_classes = (AdminReadOnlyPermissionsWithOutSuperuser,)
     filter_backends = (DjangoFilterBackend,)
     filterset_fields = (
@@ -156,7 +156,7 @@ class TitleViewSet(viewsets.ModelViewSet):
         'name',
         'year',
     )
-    filter_class = TitleFilter
+    filterset_class = TitleFilter
 
     def get_serializer_class(self):
         if self.request.method == 'GET':
@@ -165,7 +165,6 @@ class TitleViewSet(viewsets.ModelViewSet):
 
 
 class ReviewViewSet(viewsets.ModelViewSet):
-    queryset = Review.objects.all()
     serializer_class = ReviewSerializer
     permission_classes = (AdminOrReadOnly,)
     pagination_class = ReviewsPagination
@@ -177,7 +176,7 @@ class ReviewViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         title = get_object_or_404(Title, id=self.kwargs['title_id'])
-        return title.reviews.all()
+        return title.reviews.all().order_by('pk')
 
     def perform_create(self, serializer):
         title = get_object_or_404(Title, id=self.kwargs['title_id'])
@@ -197,7 +196,7 @@ class CommentViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         title = get_object_or_404(Title, id=self.kwargs['title_id'])
         review = get_object_or_404(title.reviews, id=self.kwargs['review_id'])
-        return review.comments.all()
+        return review.comments.all().order_by('pk')
 
     def perform_create(self, serializer):
         title = get_object_or_404(Title, id=self.kwargs['title_id'])
