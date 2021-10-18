@@ -1,9 +1,6 @@
-"""
-Examples: python3 manage.py importcsv --path "/home/michael/DevProjects/api_yamdb/api_yamdb/static/data/users.csv" --model_name "users.User"
-"""
 import csv
 
-from django.core.management.base import BaseCommand, CommandError
+from django.core.management.base import BaseCommand
 from django.apps import apps
 from django.db.utils import IntegrityError
 
