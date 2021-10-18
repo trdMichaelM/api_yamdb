@@ -1,15 +1,11 @@
 from django.core.mail import send_mail
 from django.shortcuts import get_object_or_404
 from django.contrib.auth import get_user_model
-
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import status, viewsets, filters, exceptions, filters
+
+from rest_framework import status, viewsets, filters, exceptions
 from rest_framework.decorators import api_view, permission_classes, action
-from rest_framework.pagination import (
-    LimitOffsetPagination,
-    PageNumberPagination
-)
-from rest_framework.permissions import AllowAny, IsAuthenticatedOrReadOnly
+from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
 
@@ -19,7 +15,8 @@ from .serializers import (
     UserSerializer,
     CategorySerializer,
     GenreSerializer,
-    TitleSerializer,
+    TitleWriteSerializer,
+    TitleReadSerializer,
 )
 from .pagination import UserPagination
 from .permissions import (
@@ -27,6 +24,7 @@ from .permissions import (
     AdminWriteOnlyPermissions,
     AdminReadOnlyPermissionsWithOutSuperuser,
 )
+from .filters import TitleFilter
 
 User = get_user_model()
 
@@ -135,7 +133,7 @@ class GenreViewSet(viewsets.ModelViewSet):
         url_path=r'(?P<slug>\w+)',
         lookup_field='slug', url_name='genre_slug'
     )
-    def get_category(self, request, slug):
+    def get_genre(self, request, slug):
         genre = self.get_object()
         serializer = GenreSerializer(genre)
         genre.delete()
@@ -144,5 +142,17 @@ class GenreViewSet(viewsets.ModelViewSet):
 
 class TitleViewSet(viewsets.ModelViewSet):
     queryset = Title.objects.all()
-    serializer_class = TitleSerializer
     permission_classes = (AdminReadOnlyPermissionsWithOutSuperuser,)
+    filter_backends = (DjangoFilterBackend,)
+    filterset_fields = (
+        'category',
+        'genre',
+        'name',
+        'year',
+    )
+    filter_class = TitleFilter
+
+    def get_serializer_class(self):
+        if self.request.method == 'GET':
+            return TitleReadSerializer
+        return TitleWriteSerializer
