@@ -24,12 +24,6 @@ class User(AbstractUser):
         choices=USER_ROLES,
         default='user'
     )
-<<<<<<< HEAD
-    confirmation_code = models.CharField(_('confirmation code'),
-                                         max_length=16, blank=True)
-=======
-
->>>>>>> reviewFix
     @property
     def is_admin(self):
         return bool(self.role == 'admin' or self.is_superuser)
@@ -46,8 +40,4 @@ class User(AbstractUser):
             )
         ]
 
-<<<<<<< HEAD
         ordering = ['pk']
-=======
-        ordering = ['pk']
->>>>>>> reviewFix

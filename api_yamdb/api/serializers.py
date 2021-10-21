@@ -42,10 +42,7 @@ class GenreSerializer(serializers.ModelSerializer):
 
 
 class TitleReadSerializer(serializers.ModelSerializer):
-    rating = serializers.SerializerMethodField(
-        source='reviews',
-        read_only=True
-    )
+    rating = serializers.IntegerField(read_only=True) 
     genre = GenreSerializer(many=True, read_only=True)
     category = CategorySerializer(read_only=True)
 
@@ -61,16 +58,10 @@ class TitleReadSerializer(serializers.ModelSerializer):
         )
         model = Title
 
-    def get_rating(self, obj):
-        rate = obj.reviews.aggregate(average_score=Avg('score'))
-        return rate.get('average_score')
-
+    
 
 class TitleWriteSerializer(serializers.ModelSerializer):
-    rating = serializers.SerializerMethodField(
-        source='reviews',
-        read_only=True
-    )
+    rating = serializers.IntegerField(read_only=True) 
     genre = serializers.SlugRelatedField(
         many=True,
         slug_field='slug',
@@ -93,9 +84,7 @@ class TitleWriteSerializer(serializers.ModelSerializer):
         )
         model = Title
 
-    def get_rating(self, obj):
-        rate = obj.reviews.aggregate(average_score=Avg('score'))
-        return rate.get('average_score')
+ 
 
 
 class ReviewSerializer(serializers.ModelSerializer):
