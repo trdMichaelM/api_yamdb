@@ -57,7 +57,6 @@ class TitleReadSerializer(serializers.ModelSerializer):
             'rating'
         )
         model = Title
-
     
 
 class TitleWriteSerializer(serializers.ModelSerializer):
@@ -83,8 +82,6 @@ class TitleWriteSerializer(serializers.ModelSerializer):
             'rating'
         )
         model = Title
-
- 
 
 
 class ReviewSerializer(serializers.ModelSerializer):

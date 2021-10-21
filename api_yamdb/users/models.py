@@ -4,8 +4,6 @@ from django.contrib.auth.models import AbstractUser
 from django.db import models
 
 
-
-
 class User(AbstractUser):
     USER_ROLES = (
         ('user', 'User'),
@@ -24,6 +22,7 @@ class User(AbstractUser):
         choices=USER_ROLES,
         default='user'
     )
+    
     @property
     def is_admin(self):
         return bool(self.role == 'admin' or self.is_superuser)
