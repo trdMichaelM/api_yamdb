@@ -4,7 +4,7 @@ from django.contrib.auth import get_user_model
 from django_filters.rest_framework import DjangoFilterBackend
 from django.conf import settings
 from django.contrib.auth.tokens import default_token_generator
-from rest_framework import status, viewsets, filters
+from rest_framework import status, viewsets, filters, mixins
 from rest_framework.permissions import AllowAny
 from rest_framework.generics import get_object_or_404
 from rest_framework.exceptions import PermissionDenied
@@ -60,7 +60,6 @@ def signup(request):
     }
     return Response(response, status=status.HTTP_200_OK)
 
-
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def token(request):
@@ -114,28 +113,28 @@ class UserViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
 
-class CategoryViewSet(viewsets.ModelViewSet):
-    queryset = Category.objects.all().order_by('pk')
+class CategoryViewSet(
+    mixins.CreateModelMixin,
+    mixins.DestroyModelMixin,
+    mixins.ListModelMixin,
+    viewsets.GenericViewSet
+):
+    queryset = Category.objects.all()
     serializer_class = CategorySerializer
     permission_classes = (AdminReadOnlyPermissionsWithOutSuperuser,)
     filter_backends = (DjangoFilterBackend, filters.SearchFilter)
     filterset_fields = ('name',)
     search_fields = ('name',)
-
-    @action(
-        detail=False, methods=['delete'],
-        url_path=r'(?P<slug>\w+)',
-        lookup_field='slug', url_name='category_slug'
-    )
-    def get_category(self, request, slug):
-        category = self.get_object()
-        serializer = CategorySerializer(category)
-        category.delete()
-        return Response(serializer.data, status=status.HTTP_204_NO_CONTENT)
+    lookup_field = 'slug'
 
 
-class GenreViewSet(viewsets.ModelViewSet):
-    queryset = Genre.objects.all().order_by('pk')
+class GenreViewSet(
+    mixins.CreateModelMixin,
+    mixins.DestroyModelMixin,
+    mixins.ListModelMixin,
+    viewsets.GenericViewSet
+):
+    queryset = Genre.objects.all()
     serializer_class = GenreSerializer
     permission_classes = (AdminReadOnlyPermissionsWithOutSuperuser,)
     filter_backends = (DjangoFilterBackend, filters.SearchFilter)
@@ -143,20 +142,9 @@ class GenreViewSet(viewsets.ModelViewSet):
     search_fields = ('name',)
     lookup_field = 'slug'
 
-    @action(
-        detail=False, methods=['delete'],
-        url_path=r'(?P<slug>\w+)',
-        lookup_field='slug', url_name='genre_slug'
-    )
-    def get_genre(self, request, slug):
-        genre = self.get_object()
-        serializer = GenreSerializer(genre)
-        genre.delete()
-        return Response(serializer.data, status=status.HTTP_204_NO_CONTENT)
-
 
 class TitleViewSet(viewsets.ModelViewSet):
-    queryset = Title.objects.all().order_by('pk')
+    queryset = Title.objects.all()
     permission_classes = (AdminReadOnlyPermissionsWithOutSuperuser,)
     filter_backends = (DjangoFilterBackend,)
     filterset_fields = (
@@ -168,7 +156,7 @@ class TitleViewSet(viewsets.ModelViewSet):
     filterset_class = TitleFilter
 
     def get_serializer_class(self):
-        if self.request.method == 'GET':
+        if self.action == 'retrieve' or self.action == 'list':
             return TitleReadSerializer
         return TitleWriteSerializer
 
