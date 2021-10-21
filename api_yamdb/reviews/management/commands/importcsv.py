@@ -1,6 +1,6 @@
 import csv
 
-from django.core.management.base import BaseCommand
+from django.core.management.base import BaseCommand, CommandError
 from django.apps import apps
 from django.db.utils import IntegrityError
 
@@ -13,23 +13,31 @@ class Command(BaseCommand):
         parser.add_argument('--model_name', type=str, help="model name")
 
     def handle(self, *args, **options):
+        # А зачем портянкой трейсбэка пользователей пугать,
+        # а так всё культурно, прога падает и больше не выполняется
+        # а мы видим ошибку
+        file_path = options['path']
+
         try:
-            file_path = options['path']
             model = apps.get_model(options['model_name'])
         except Exception as err:
-            self.stdout.write(str(err))
-            return
+            raise CommandError(str(err))
 
-        with open(file_path, 'r') as file:
-            reader = csv.reader(file, delimiter=',')
-            header = reader.__next__()
-            for row in reader:
-                data = {key: value for key, value in zip(header, row)}
-                try:
-                    model.objects.create(**data)
-                except IntegrityError as err:
-                    line = ', '.join(row)
-                    self.stdout.write(f'Error! {err}, \"{line}\"')
-                    # raise CommandError(err)
-                except Exception as err:
-                    self.stdout.write(str(err))
+        try:
+            file = open(file_path, 'r')
+        except IOError as err:
+            raise CommandError(str(err))
+
+        reader = csv.reader(file, delimiter=',')
+        header = reader.__next__()
+        for row in reader:
+            data = {key: value for key, value in zip(header, row)}
+            try:
+                model.objects.create(**data)
+            except IntegrityError as err:
+                line = ', '.join(row)
+                raise CommandError(f'{err}, \"{line}\"')
+            except Exception as err:
+                raise CommandError(str(err))
+
+        file.close()
