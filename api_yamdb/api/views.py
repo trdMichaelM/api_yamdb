@@ -28,8 +28,8 @@ from .pagination import CommentsPagination, ReviewsPagination, UserPagination
 from .permissions import (
     AdminReadOnlyPermissions,
     AdminWriteOnlyPermissions,
-    AdminReadOnlyPermissionsWithOutSuperuser,
     AdminOrReadOnly,
+    ReadOnlyOrAdminPermission
 )
 from .filters import TitleFilter
 
@@ -59,6 +59,7 @@ def signup(request):
         'username': username
     }
     return Response(response, status=status.HTTP_200_OK)
+
 
 @api_view(['POST'])
 @permission_classes([AllowAny])
@@ -121,7 +122,7 @@ class CategoryViewSet(
 ):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
-    permission_classes = (AdminReadOnlyPermissionsWithOutSuperuser,)
+    permission_classes = (ReadOnlyOrAdminPermission,)
     filter_backends = (DjangoFilterBackend, filters.SearchFilter)
     filterset_fields = ('name',)
     search_fields = ('name',)
@@ -136,7 +137,7 @@ class GenreViewSet(
 ):
     queryset = Genre.objects.all()
     serializer_class = GenreSerializer
-    permission_classes = (AdminReadOnlyPermissionsWithOutSuperuser,)
+    permission_classes = (ReadOnlyOrAdminPermission,)
     filter_backends = (DjangoFilterBackend, filters.SearchFilter)
     filterset_fields = ('name',)
     search_fields = ('name',)
@@ -145,7 +146,7 @@ class GenreViewSet(
 
 class TitleViewSet(viewsets.ModelViewSet):
     queryset = Title.objects.all()
-    permission_classes = (AdminReadOnlyPermissionsWithOutSuperuser,)
+    permission_classes = (ReadOnlyOrAdminPermission,)
     filter_backends = (DjangoFilterBackend,)
     filterset_fields = (
         'category',
