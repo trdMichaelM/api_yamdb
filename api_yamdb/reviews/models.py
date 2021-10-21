@@ -50,7 +50,7 @@ class Review(models.Model):
                 fields=['author', 'title'],
                 name='unique_author_title')
         ]
-
+        ordering = ['pk']
 
 class Comment(models.Model):
     author = models.ForeignKey(
@@ -63,3 +63,6 @@ class Comment(models.Model):
     pub_date = models.DateTimeField(
         'Дата добавления', auto_now_add=True, db_index=True
     )
+    
+    class Meta:
+        ordering = ['pk']

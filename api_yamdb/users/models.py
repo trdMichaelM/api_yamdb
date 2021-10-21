@@ -4,8 +4,10 @@ from django.contrib.auth.models import AbstractUser
 from django.db import models
 
 
+
+
 class User(AbstractUser):
-    CHOICES = (
+    USER_ROLES = (
         ('user', 'User'),
         ('moderator', 'Moderator'),
         ('admin', 'Admin'),
@@ -15,15 +17,22 @@ class User(AbstractUser):
         max_length=254,
         unique=True,
     )
-    bio = models.TextField(blank=True)
+    bio = models.TextField(_('biography'), blank=True)
     role = models.CharField(
+        _('custom roles'),
         max_length=16,
-        choices=CHOICES,
+        choices=USER_ROLES,
         default='user'
     )
-
     confirmation_code = models.CharField(_('confirmation code'),
                                          max_length=16, blank=True)
+    @property
+    def is_admin(self):
+        return bool(self.role == 'admin' or self.is_superuser)
+
+    @property
+    def is_moderator(self):
+        return bool(self.role == 'moderator' or self.is_superuser)
 
     class Meta:
         constraints = [
@@ -32,3 +41,5 @@ class User(AbstractUser):
                 name='unique_email_username'
             )
         ]
+
+        ordering = ['pk']
