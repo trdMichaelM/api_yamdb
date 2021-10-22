@@ -12,9 +12,9 @@ class AdminReadOnlyPermissions(permissions.BasePermission):
 class ReadOnlyOrAdminPermission(permissions.BasePermission):
     def has_permission(self, request, view):
         safe_method = request.method in permissions.SAFE_METHODS
-        return bool(safe_method or request.user
+        return bool(safe_method or (request.user
                     and request.user.is_authenticated
-                    and request.user.is_admin)
+                    and request.user.is_admin))
 
 
 class AdminWriteOnlyPermissions(permissions.BasePermission):
