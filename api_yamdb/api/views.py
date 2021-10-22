@@ -21,6 +21,7 @@ from .serializers import (
     CommentSerializer,
     GenreSerializer,
     ReviewSerializer,
+    ReviewCreateSerializer,
     TitleWriteSerializer,
     TitleReadSerializer,
 )
@@ -167,6 +168,11 @@ class ReviewViewSet(viewsets.ModelViewSet):
     permission_classes = (AdminOrReadOnly,)
     pagination_class = ReviewsPagination
 
+    def get_serializer_class(self):
+        if self.action == 'create':
+            return ReviewCreateSerializer
+        return ReviewSerializer
+
     def get_permissions(self):
         if self.action == 'update':
             raise PermissionDenied('Do not allow PUT request')
@@ -174,7 +180,7 @@ class ReviewViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         title = get_object_or_404(Title, id=self.kwargs['title_id'])
-        return title.reviews.all()
+        return title.reviews.all().order_by('pk')
 
     def perform_create(self, serializer):
         title = get_object_or_404(Title, id=self.kwargs['title_id'])
