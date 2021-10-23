@@ -11,7 +11,7 @@ from rest_framework.exceptions import PermissionDenied
 from rest_framework.decorators import api_view, permission_classes, action
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
-
+from django.db.models import Avg
 from reviews.models import Category, Genre, Title
 
 from .serializers import (
@@ -21,6 +21,7 @@ from .serializers import (
     CommentSerializer,
     GenreSerializer,
     ReviewSerializer,
+    ReviewCreateSerializer,
     TitleWriteSerializer,
     TitleReadSerializer,
 )
@@ -28,8 +29,8 @@ from .pagination import CommentsPagination, ReviewsPagination, UserPagination
 from .permissions import (
     AdminReadOnlyPermissions,
     AdminWriteOnlyPermissions,
-    AdminReadOnlyPermissionsWithOutSuperuser,
     AdminOrReadOnly,
+    ReadOnlyOrAdminPermission
 )
 from .filters import TitleFilter
 
@@ -59,6 +60,7 @@ def signup(request):
         'username': username
     }
     return Response(response, status=status.HTTP_200_OK)
+
 
 @api_view(['POST'])
 @permission_classes([AllowAny])
@@ -121,7 +123,7 @@ class CategoryViewSet(
 ):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
-    permission_classes = (AdminReadOnlyPermissionsWithOutSuperuser,)
+    permission_classes = (ReadOnlyOrAdminPermission,)
     filter_backends = (DjangoFilterBackend, filters.SearchFilter)
     filterset_fields = ('name',)
     search_fields = ('name',)
@@ -136,7 +138,7 @@ class GenreViewSet(
 ):
     queryset = Genre.objects.all()
     serializer_class = GenreSerializer
-    permission_classes = (AdminReadOnlyPermissionsWithOutSuperuser,)
+    permission_classes = (ReadOnlyOrAdminPermission,)
     filter_backends = (DjangoFilterBackend, filters.SearchFilter)
     filterset_fields = ('name',)
     search_fields = ('name',)
@@ -144,8 +146,8 @@ class GenreViewSet(
 
 
 class TitleViewSet(viewsets.ModelViewSet):
-    queryset = Title.objects.all()
-    permission_classes = (AdminReadOnlyPermissionsWithOutSuperuser,)
+    queryset = Title.objects.all().annotate(rating=Avg('reviews__score'))
+    permission_classes = (ReadOnlyOrAdminPermission,)
     filter_backends = (DjangoFilterBackend,)
     filterset_fields = (
         'category',
@@ -165,6 +167,11 @@ class ReviewViewSet(viewsets.ModelViewSet):
     serializer_class = ReviewSerializer
     permission_classes = (AdminOrReadOnly,)
     pagination_class = ReviewsPagination
+
+    def get_serializer_class(self):
+        if self.action == 'create':
+            return ReviewCreateSerializer
+        return ReviewSerializer
 
     def get_permissions(self):
         if self.action == 'update':
@@ -193,7 +200,7 @@ class CommentViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         title = get_object_or_404(Title, id=self.kwargs['title_id'])
         review = get_object_or_404(title.reviews, id=self.kwargs['review_id'])
-        return review.comments.all().order_by('pk')
+        return review.comments.all()
 
     def perform_create(self, serializer):
         title = get_object_or_404(Title, id=self.kwargs['title_id'])
