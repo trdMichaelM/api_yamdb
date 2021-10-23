@@ -64,8 +64,9 @@ class Review(models.Model):
                 fields=['author', 'title'],
                 name='unique_author_title')
         ]
-        
+
         ordering = ['pk']
+
 
 class Comment(models.Model):
     author = models.ForeignKey(

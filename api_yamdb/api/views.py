@@ -4,6 +4,7 @@ from django.contrib.auth import get_user_model
 from django_filters.rest_framework import DjangoFilterBackend
 from django.conf import settings
 from django.contrib.auth.tokens import default_token_generator
+from django.db.models import Avg
 from rest_framework import status, viewsets, filters, mixins
 from rest_framework.permissions import AllowAny
 from rest_framework.generics import get_object_or_404
@@ -11,7 +12,6 @@ from rest_framework.exceptions import PermissionDenied
 from rest_framework.decorators import api_view, permission_classes, action
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
-from django.db.models import Avg
 from reviews.models import Category, Genre, Title
 
 from .serializers import (

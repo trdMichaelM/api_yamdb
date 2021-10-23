@@ -1,5 +1,4 @@
 from django.contrib.auth import get_user_model
-from django.db.models import Avg
 from rest_framework import serializers
 from rest_framework.generics import get_object_or_404
 from rest_framework.relations import SlugRelatedField
@@ -42,7 +41,7 @@ class GenreSerializer(serializers.ModelSerializer):
 
 
 class TitleReadSerializer(serializers.ModelSerializer):
-    rating = serializers.IntegerField(read_only=True) 
+    rating = serializers.IntegerField(read_only=True)
     genre = GenreSerializer(many=True, read_only=True)
     category = CategorySerializer(read_only=True)
 
@@ -57,10 +56,10 @@ class TitleReadSerializer(serializers.ModelSerializer):
             'rating'
         )
         model = Title
-    
+
 
 class TitleWriteSerializer(serializers.ModelSerializer):
-    rating = serializers.IntegerField(read_only=True) 
+    rating = serializers.IntegerField(read_only=True)
     genre = serializers.SlugRelatedField(
         many=True,
         slug_field='slug',
