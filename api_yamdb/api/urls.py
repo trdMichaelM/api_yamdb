@@ -9,7 +9,7 @@ from .views import (
     GenreViewSet,
     ReviewViewSet,
     TitleViewSet,
-    UserViewSet,
+    UserViewSet
 )
 
 router = routers.DefaultRouter()
