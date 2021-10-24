@@ -22,7 +22,7 @@ class User(AbstractUser):
         choices=USER_ROLES,
         default='user'
     )
-
+    
     @property
     def is_admin(self):
         return bool(self.role == 'admin' or self.is_superuser)

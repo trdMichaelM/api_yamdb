@@ -24,7 +24,6 @@ class AdminWriteOnlyPermissions(permissions.BasePermission):
 
 
 class AdminOrReadOnly(permissions.BasePermission):
-
     def has_permission(self, request, view):
         return bool(request.method in permissions.SAFE_METHODS
                     or request.user.is_authenticated)
