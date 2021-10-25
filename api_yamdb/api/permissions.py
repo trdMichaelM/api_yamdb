@@ -6,12 +6,9 @@ class IsAdminPermission(permissions.BasePermission):
         return request.user.is_authenticated and request.user.is_admin
 
 
-class ReadOnlyOrAdminPermission(permissions.BasePermission):
+class ReadOnlyPermission(permissions.BasePermission):
     def has_permission(self, request, view):
-        safe_method = request.method in permissions.SAFE_METHODS
-        return bool(safe_method or (request.user
-                                    and request.user.is_authenticated
-                                    and request.user.is_admin))
+        return request.method in permissions.SAFE_METHODS
 
 
 class AdminOrReadOnly(permissions.BasePermission):
