@@ -6,12 +6,13 @@ from django.conf import settings
 from django.contrib.auth.tokens import default_token_generator
 from django.db.models import Avg
 from rest_framework import status, viewsets, filters, mixins
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.generics import get_object_or_404
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.decorators import api_view, permission_classes, action
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
+
 from reviews.models import Category, Genre, Title
 
 from .serializers import (
@@ -24,13 +25,13 @@ from .serializers import (
     ReviewCreateSerializer,
     TitleWriteSerializer,
     TitleReadSerializer,
+    TokenSerializer,
 )
 from .pagination import CommentsPagination, ReviewsPagination, UserPagination
 from .permissions import (
-    AdminReadOnlyPermissions,
-    AdminWriteOnlyPermissions,
     AdminOrReadOnly,
-    ReadOnlyOrAdminPermission
+    ReadOnlyOrAdminPermission,
+    IsAdminPermission
 )
 from .filters import TitleFilter
 
@@ -40,13 +41,11 @@ User = get_user_model()
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def signup(request):
-    if not User.objects.filter(**request.data).exists():
-        serializer = SignupSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
-    username = request.data.get('username')
-    email = request.data.get('email')
-    user = User.objects.get(username=username)
+    serializer = SignupSerializer(data=request.data)
+    serializer.is_valid(raise_exception=True)
+    username = serializer.data['username']
+    email = serializer.data['email']
+    user, _ = User.objects.get_or_create(email=email, username=username)
     confirmation_code = default_token_generator.make_token(user)
     send_mail(
         '',
@@ -65,50 +64,44 @@ def signup(request):
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def token(request):
-    username = request.data.get('username')
-    confirmation_code = request.data.get('confirmation_code')
-    if username is not None and confirmation_code is not None:
-        user = get_object_or_404(User, username=username)
-        if default_token_generator.check_token(user, confirmation_code):
-            access_token = RefreshToken.for_user(user)
-            response = {'token': str(access_token.access_token)}
-            return Response(response, status=status.HTTP_200_OK)
+    serializer = TokenSerializer(data=request.data)
+    serializer.is_valid(raise_exception=True)
+    username = serializer.data['username']
+    confirmation_code = serializer.data['confirmation_code']
+    user = get_object_or_404(User, username=username)
+    if default_token_generator.check_token(user, confirmation_code):
+        access_token = RefreshToken.for_user(user)
+        response = {'token': str(access_token.access_token)}
+        return Response(response, status=status.HTTP_200_OK)
 
-    return Response(status=status.HTTP_400_BAD_REQUEST)
+    response = {user.username: 'Confirmation code incorrect.'}
+    return Response(response, status=status.HTTP_400_BAD_REQUEST)
 
 
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
-    # http_method_names = ['get', 'post', 'patch', 'delete']
-    # тесты статус 405 не пропускают, требуют 403
+
+    http_method_names = ['get', 'post', 'patch', 'delete']
 
     lookup_field = 'username'
 
     pagination_class = UserPagination
 
+    permission_classes = (IsAdminPermission,)
+
     filter_backends = (filters.SearchFilter,)
     search_fields = ('username',)
 
-    def get_permissions(self):
-        if self.action in ('list', 'retrieve',):
-            return (AdminReadOnlyPermissions(),)
-        elif self.action in ('create', 'partial_update', 'destroy',):
-            return (AdminWriteOnlyPermissions(),)
-        elif self.action == 'update':
-            raise PermissionDenied('Do not allow PUT request')
-        return super().get_permissions()
-
-    @action(methods=['GET', 'PATCH'], detail=False)
+    @action(methods=['GET', 'PATCH'], detail=False,
+            permission_classes=[IsAuthenticated])
     def me(self, request):
         user = request.user
-        data = request.data.copy()
+        data = request.data
         if request.method == 'PATCH':
-            if user.role == 'user' and 'role' in data:
-                data['role'] = 'user'
             serializer = self.get_serializer(user, data=data, partial=True)
             serializer.is_valid(raise_exception=True)
-            serializer.save()
+            serializer.save(role=user.role, partial=True)
             return Response(serializer.data, status=status.HTTP_200_OK)
 
         serializer = self.get_serializer(user)
