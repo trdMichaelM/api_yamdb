@@ -1,12 +1,9 @@
 from rest_framework import permissions
 
 
-class AdminReadOnlyPermissions(permissions.BasePermission):
+class IsAdminPermission(permissions.BasePermission):
     def has_permission(self, request, view):
-        safe_method = request.method in permissions.SAFE_METHODS
-        return bool(safe_method and request.user
-                    and request.user.is_authenticated
-                    and request.user.is_admin)
+        return request.user.is_authenticated and request.user.is_admin
 
 
 class ReadOnlyOrAdminPermission(permissions.BasePermission):
@@ -15,12 +12,6 @@ class ReadOnlyOrAdminPermission(permissions.BasePermission):
         return bool(safe_method or (request.user
                                     and request.user.is_authenticated
                                     and request.user.is_admin))
-
-
-class AdminWriteOnlyPermissions(permissions.BasePermission):
-    def has_permission(self, request, view):
-        return bool(request.user and request.user.is_authenticated
-                    and request.user.is_admin)
 
 
 class AdminOrReadOnly(permissions.BasePermission):
