@@ -8,7 +8,7 @@ from django.db.models import Avg
 from rest_framework import status, viewsets, filters, mixins
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.generics import get_object_or_404
-from rest_framework.exceptions import PermissionDenied
+from rest_framework.exceptions import MethodNotAllowed
 from rest_framework.decorators import api_view, permission_classes, action
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
@@ -29,9 +29,10 @@ from .serializers import (
 )
 from .pagination import CommentsPagination, ReviewsPagination, UserPagination
 from .permissions import (
-    AdminOrReadOnly,
-    ReadOnlyPermission,
-    IsAdminPermission
+    IsOwnerPermission,
+    IsAdminPermission,
+    IsModeratorPermission,
+    ReadOnlyPermission
 )
 from .filters import TitleFilter
 
@@ -158,8 +159,10 @@ class TitleViewSet(viewsets.ModelViewSet):
 
 class ReviewViewSet(viewsets.ModelViewSet):
     serializer_class = ReviewSerializer
-    permission_classes = (AdminOrReadOnly,)
+    permission_classes = (IsOwnerPermission | IsAdminPermission | IsModeratorPermission,)
+    filter_backends = (DjangoFilterBackend, filters.OrderingFilter)
     pagination_class = ReviewsPagination
+    ordering_fields = ('pk')
 
     def get_serializer_class(self):
         if self.action == 'create':
@@ -168,12 +171,12 @@ class ReviewViewSet(viewsets.ModelViewSet):
 
     def get_permissions(self):
         if self.action == 'update':
-            raise PermissionDenied('Do not allow PUT request')
+            raise MethodNotAllowed('Do not allow PUT request')
         return super().get_permissions()
 
     def get_queryset(self):
         title = get_object_or_404(Title, id=self.kwargs['title_id'])
-        return title.reviews.all().order_by('pk')
+        return title.reviews.all()
 
     def perform_create(self, serializer):
         title = get_object_or_404(Title, id=self.kwargs['title_id'])
@@ -182,12 +185,12 @@ class ReviewViewSet(viewsets.ModelViewSet):
 
 class CommentViewSet(viewsets.ModelViewSet):
     serializer_class = CommentSerializer
-    permission_classes = (AdminOrReadOnly,)
+    permission_classes = (IsOwnerPermission | IsAdminPermission | IsModeratorPermission,)
     pagination_class = CommentsPagination
 
     def get_permissions(self):
         if self.action == 'update':
-            raise PermissionDenied('Do not allow PUT request')
+            raise MethodNotAllowed('Do not allow PUT request')
         return super().get_permissions()
 
     def get_queryset(self):
