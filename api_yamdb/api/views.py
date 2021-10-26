@@ -159,7 +159,9 @@ class TitleViewSet(viewsets.ModelViewSet):
 
 class ReviewViewSet(viewsets.ModelViewSet):
     serializer_class = ReviewSerializer
-    permission_classes = (IsOwnerPermission | IsAdminPermission | IsModeratorPermission,)
+    permission_classes = (
+        IsOwnerPermission | IsAdminPermission | IsModeratorPermission,
+    )
     filter_backends = (DjangoFilterBackend, filters.OrderingFilter)
     pagination_class = ReviewsPagination
     ordering_fields = ('pk')
@@ -185,7 +187,9 @@ class ReviewViewSet(viewsets.ModelViewSet):
 
 class CommentViewSet(viewsets.ModelViewSet):
     serializer_class = CommentSerializer
-    permission_classes = (IsOwnerPermission | IsAdminPermission | IsModeratorPermission,)
+    permission_classes = (
+        IsOwnerPermission | IsAdminPermission | IsModeratorPermission,
+    )
     pagination_class = CommentsPagination
 
     def get_permissions(self):
