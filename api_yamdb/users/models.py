@@ -25,11 +25,11 @@ class User(AbstractUser):
 
     @property
     def is_admin(self):
-        return bool(self.role == 'admin' or self.is_superuser)
+        return self.role == 'admin' or self.is_superuser
 
     @property
     def is_moderator(self):
-        return bool(self.role == 'moderator' or self.is_superuser)
+        return self.role == 'moderator'
 
     class Meta:
         constraints = [
