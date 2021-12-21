@@ -15,6 +15,13 @@ git clone git@github.com:trdMichaelM/api_yamdb.git
 cd api_yamdb
 ```
 
+Файл .env.example переименовываем в .env и прописываем в нем SECRET_KEY
+
+```
+mv .env.example .env
+nano .env
+```
+
 Cоздать и активировать виртуальное окружение:
 
 ```
@@ -36,17 +43,15 @@ python3 -m pip install --upgrade pip
 pip install -r requirements.txt
 ```
 
-Дополнительно установить модули Simple JWT и django_filters:
+Дополнительно установить модули django_filters, Simple JWT и dotenv:
 
 ```
-pip install django-filter
-pip install djangorestframework_simplejwt 
+pip install django-filter djangorestframework_simplejwt python-dotenv
 ```
 
 Выполнить миграции:
 
 ```
-python3 manage.py makemigrations
 python3 manage.py migrate
 ```
 
@@ -61,3 +66,10 @@ python3 manage.py runserver
 ```
 Дитальное описание и примеры работы API проекта представлены в 
 документации: http://127.0.0.1:8000/redoc/ в формате ReDoc.
+```
+
+### Используется:
+
+```
+Python 3.9 Django 2.2 Simple JWT
+```
